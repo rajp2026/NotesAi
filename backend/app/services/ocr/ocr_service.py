@@ -1,14 +1,44 @@
+import cv2
+import pytesseract
+
+from PIL import Image
+
+
+pytesseract.pytesseract.tesseract_cmd = (
+    r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+)
+
+
 class OCRService:
 
+
     @staticmethod
-    async def extract_text(file_path: str):
+    async def extract_text(
+        file_path: str
+    ) -> str:
 
         print(f"OCR STARTED: {file_path}")
 
-        # REAL OCR LATER
+        image = cv2.imread(file_path)
 
-        extracted_text = (
-            "This is extracted OCR text"
+        # grayscale
+        gray = cv2.cvtColor(
+            image,
+            cv2.COLOR_BGR2GRAY
         )
 
+        # threshold
+        thresh = cv2.threshold(
+            gray,
+            150,
+            255,
+            cv2.THRESH_BINARY
+        )[1]
+
+        pil_image = Image.fromarray(thresh)
+
+        extracted_text = pytesseract.image_to_string(
+            pil_image
+        )
+        breakpoint()
         return extracted_text
