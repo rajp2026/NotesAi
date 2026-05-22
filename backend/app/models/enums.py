@@ -1,0 +1,18 @@
+from enum import Enum
+
+
+class NoteStatus(str, Enum):
+
+    UPLOADED = "UPLOADED"
+
+    OCR_PROCESSING = "OCR_PROCESSING"
+
+    OCR_COMPLETED = "OCR_COMPLETED"
+
+    AI_PROCESSING = "AI_PROCESSING"
+
+    PDF_GENERATING = "PDF_GENERATING"
+
+    COMPLETED = "COMPLETED"
+
+    FAILED = "FAILED"

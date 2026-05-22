@@ -1,16 +1,16 @@
-import os
-import shutil
-from uuid import uuid4
-
-from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.repositories.note_repository import NoteRepository
-from app.core.kafka_producer import producer
+from app.repositories.note_repository import (
+    NoteRepository
+)
 
-UPLOAD_DIR = "storage/uploads"
+from app.services.storage.local_storage_service import (
+    LocalStorageService
+)
 
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+from app.core.event_bus import publish_event
+
+from app.kafka.topics import IMAGE_UPLOADED_TOPIC
 
 
 class NoteService:
@@ -18,38 +18,30 @@ class NoteService:
     @staticmethod
     async def upload_note(
         db: AsyncSession,
-        file: UploadFile
+        file
     ):
 
-        # Generate unique filename
-        unique_filename = f"{uuid4()}_{file.filename}"
-
-        file_path = os.path.join(
-            UPLOAD_DIR,
-            unique_filename
-        )
-
         # Save file locally
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        file_path = LocalStorageService.save_file(file)
+        # Save DB record
 
-        # Create DB record
         note = await NoteRepository.create_note(
             db=db,
             title=file.filename,
             original_file_url=file_path
         )
-        
-        print("BEFORE KAFKA SENDEDDDDDDDDDDDDDD")
-        producer.send(
-            "image_uploaded",{
+
+        # Publish Kafka event
+
+        publish_event(
+
+            topic=IMAGE_UPLOADED_TOPIC,
+
+            payload={
                 "note_id": note.id,
                 "file_path": file_path,
                 "filename": file.filename
             }
         )
-        print("AFTER KAFKA SENDEDDDDDDDDDDDDD")
-        producer.flush()
 
         return note
-    

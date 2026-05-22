@@ -27,14 +27,13 @@ async def upload_note(
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db)
 ):
-
     try:
 
         note = await NoteService.upload_note(
             db=db,
             file=file
         )
-
+        
         return note
 
     except Exception as e:
