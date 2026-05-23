@@ -26,13 +26,44 @@ class NoteRepository:
 
         return note
 
+    # @staticmethod
+    # async def update_status(
+    #     db,
+    #     note,
+    #     status
+    # ):
+    #     note.status = status
+    #     await db.commit()
+    #     await db.refresh(note)
+    #     return note
     @staticmethod
-    async def update_status(
+    async def update_ocr_result(
         db,
         note,
-        status
+        extracted_text: str,
+        status: str
     ):
+
+        note.extracted_text = extracted_text
+
         note.status = status
+
         await db.commit()
+
         await db.refresh(note)
+
         return note
+
+    @staticmethod
+    async def get_by_id(
+        db: AsyncSession,
+        note_id: int
+    ):
+
+        result = await db.get(
+            Note,
+            note_id
+        )
+
+        return result
+        

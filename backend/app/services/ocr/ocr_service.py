@@ -13,7 +13,7 @@ class OCRService:
 
 
     @staticmethod
-    async def extract_text(
+    def extract_text(
         file_path: str
     ) -> str:
 
@@ -40,5 +40,4 @@ class OCRService:
         extracted_text = pytesseract.image_to_string(
             pil_image
         )
-        breakpoint()
         return extracted_text

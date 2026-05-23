@@ -11,6 +11,14 @@ from app.services.ocr.ocr_service import (
     OCRService
 )
 
+from app.db.session import AsyncSessionLocal
+
+from app.repositories.note_repository import (
+    NoteRepository
+)
+
+from app.models.enums import NoteStatus
+
 
 consumer = KafkaConsumer(
 
@@ -22,8 +30,6 @@ consumer = KafkaConsumer(
 
     auto_offset_reset="latest",
 
-    enable_auto_commit=True,
-
     value_deserializer=lambda m: json.loads(
         m.decode("utf-8")
     )
@@ -33,26 +39,71 @@ consumer = KafkaConsumer(
 print("OCR CONSUMER STARTED...")
 
 
-for message in consumer:
+async def process_message(data):
 
-    data = message.value
-
-    print("\nEVENT RECEIVED")
-
-    print(data)
+    note_id = data.get("note_id")
 
     file_path = data.get("file_path")
 
-    if not file_path:
+    async with AsyncSessionLocal() as db:
 
-        print("Invalid event payload")
+        note = await NoteRepository.get_by_id(
+            db,
+            note_id
+        )
 
-        continue
+        if not note:
 
-    extracted_text = asyncio.run(
-        OCRService.extract_text(file_path)
-    )
+            print("Note not found")
 
-    print("\nOCR RESULT:")
+            return
 
-    print(extracted_text)
+
+        note.status = (
+            NoteStatus.OCR_PROCESSING
+        )
+
+        await db.commit()
+
+
+        extracted_text = (
+            OCRService.extract_text(
+                file_path
+            )
+        )
+
+
+        await NoteRepository.update_ocr_result(
+
+            db=db,
+
+            note=note,
+
+            extracted_text=extracted_text,
+
+            status=NoteStatus.OCR_COMPLETED
+        )
+
+
+        print("\nOCR COMPLETED")
+
+
+for message in consumer:
+
+    try:
+
+        data = message.value
+
+        print("\nEVENT RECEIVED")
+
+        print(data)
+
+        asyncio.run(
+            process_message(data)
+        )
+
+    except Exception as e:
+
+        print("OCR ERROR")
+
+        print(str(e))
