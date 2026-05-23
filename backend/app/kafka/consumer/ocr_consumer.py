@@ -6,6 +6,11 @@ from kafka import KafkaConsumer
 from app.kafka.topics import (
     IMAGE_UPLOADED_TOPIC
 )
+from app.kafka.event_bus import event_bus
+
+from app.kafka.topics import (
+    OCR_COMPLETED_TOPIC
+)
 
 from app.services.ocr.ocr_service import (
     OCRService
@@ -86,6 +91,13 @@ async def process_message(data):
 
 
         print("\nOCR COMPLETED")
+
+        await event_bus.publish(
+            topic = OCR_COMPLETED_TOPIC,
+            event = {
+                "note_id": note.id
+            }
+        )
 
 
 for message in consumer:

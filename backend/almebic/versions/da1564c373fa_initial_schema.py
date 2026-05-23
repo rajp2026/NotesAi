@@ -1,8 +1,8 @@
-"""fix note status correctly
+"""initial schema
 
-Revision ID: 26e9cec5eddf
-Revises: c9901218322a
-Create Date: 2026-05-23 01:53:38.123721
+Revision ID: da1564c373fa
+Revises: 
+Create Date: 2026-05-24 02:29:48.117920
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '26e9cec5eddf'
-down_revision: Union[str, Sequence[str], None] = 'c9901218322a'
+revision: str = 'da1564c373fa'
+down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -27,8 +27,9 @@ def upgrade() -> None:
     sa.Column('original_file_url', sa.String(), nullable=False),
     sa.Column('generated_pdf_url', sa.String(), nullable=True),
     sa.Column('extracted_text', sa.Text(), nullable=True),
+    sa.Column('formatted_text', sa.Text(), nullable=True),
     sa.Column('error_message', sa.Text(), nullable=True),
-    sa.Column('status', sa.Enum('UPLOADED', 'OCR_PROCESSING', 'OCR_COMPLETED', 'AI_PROCESSING', 'PDF_GENERATING', 'COMPLETED', 'FAILED', name='note_status'), nullable=False),
+    sa.Column('status', sa.Enum('UPLOADED', 'OCR_PROCESSING', 'OCR_COMPLETED', 'AI_PROCESSING', 'PDF_GENERATING', 'COMPLETED', 'FAILED', 'AI_COMPLETED', name='note_status'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###

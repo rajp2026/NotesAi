@@ -8,8 +8,7 @@ from app.services.storage.local_storage_service import (
     LocalStorageService
 )
 
-from app.core.event_bus import publish_event
-
+from app.kafka.event_bus import event_bus
 from app.kafka.topics import IMAGE_UPLOADED_TOPIC
 
 
@@ -33,11 +32,11 @@ class NoteService:
 
         # Publish Kafka event
 
-        publish_event(
+        await event_bus.publish(
 
             topic=IMAGE_UPLOADED_TOPIC,
 
-            payload={
+            event={
                 "note_id": note.id,
                 "file_path": file_path,
                 "filename": file.filename

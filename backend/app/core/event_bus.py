@@ -1,6 +1,6 @@
-from app.kafka.producer.kafka_producer import (
-    get_kafka_producer
-)
+# from app.kafka.producer.kafka_producer import (
+#     get_kafka_producer
+# )
 
 
 def publish_event(topic: str, payload: dict):

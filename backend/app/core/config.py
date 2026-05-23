@@ -6,6 +6,8 @@ class Settings(BaseSettings):
 
     APP_NAME: str = "AI Notes PDF Generator"
 
+    OPENAI_API_KEY: str
+
     DATABASE_URL: str
 
     # REDIS_URL: str

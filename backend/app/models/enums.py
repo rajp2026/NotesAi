@@ -16,3 +16,6 @@ class NoteStatus(str, Enum):
     COMPLETED = "COMPLETED"
 
     FAILED = "FAILED"
+    
+    AI_COMPLETED = "AI_COMPLETED"
+    

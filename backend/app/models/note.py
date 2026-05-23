@@ -36,7 +36,10 @@ class Note(Base):
         Text,
         nullable=True
     )
-
+    formatted_text: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True
+    )
     error_message: Mapped[str | None] = mapped_column(
         Text,
         nullable=True
