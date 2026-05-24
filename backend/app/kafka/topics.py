@@ -5,3 +5,5 @@ OCR_COMPLETED_TOPIC = "ocr_completed"
 NOTES_FORMATTED_TOPIC = "notes_formatted"
 
 PDF_GENERATED_TOPIC = "pdf_generated"
+
+AI_COMPLETED_TOPIC = "ai_completed"

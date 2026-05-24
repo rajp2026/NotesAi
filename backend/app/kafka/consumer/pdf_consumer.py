@@ -7,20 +7,16 @@ from app.db.session import (
     AsyncSessionLocal
 )
 
-from app.models.enums import (
-    NoteStatus
-)
-
 from app.repositories.note_repository import (
     NoteRepository
 )
 
-from app.services.ai.ai_formatter_service import (
-    AIFormatterService
+from app.services.pdf.pdf_service import (
+    PDFService
 )
 
-from app.kafka.topics import (
-    OCR_COMPLETED_TOPIC
+from app.models.enums import (
+    NoteStatus
 )
 from app.kafka.event_bus import event_bus
 
@@ -31,12 +27,15 @@ from app.kafka.topics import (
 
 consumer = KafkaConsumer(
 
-    OCR_COMPLETED_TOPIC,
+    AI_COMPLETED_TOPIC,
 
     bootstrap_servers="localhost:9092",
 
-    group_id="ai-consumer-group-v2",
+    group_id="pdf-consumer-group",
+
     auto_offset_reset="latest",
+
+    enable_auto_commit=True,
 
     value_deserializer=lambda m: json.loads(
         m.decode("utf-8")
@@ -44,7 +43,9 @@ consumer = KafkaConsumer(
 )
 
 
-print("AI FORMATTER CONSUMER STARTED...")
+print(
+    "PDF GENERATOR CONSUMER STARTED..."
+)
 
 
 async def process_message(data):
@@ -57,6 +58,7 @@ async def process_message(data):
             db,
             note_id
         )
+
         if not note:
 
             print("Note not found")
@@ -65,35 +67,32 @@ async def process_message(data):
 
 
         note.status = (
-            NoteStatus.AI_PROCESSING
+            NoteStatus.PDF_GENERATING
         )
 
         await db.commit()
 
-        print("\nEXTRACTED TEXT:")
-        print(note.extracted_text)
-        formatted_text = (
-            await AIFormatterService.format_notes(
-                note.extracted_text
+
+        pdf_path = (
+            PDFService.generate_pdf(
+                note.formatted_text
             )
         )
 
 
-        note.formatted_text = formatted_text
+        note.generated_pdf_url = (
+            pdf_path
+        )
 
         note.status = (
-            NoteStatus.AI_COMPLETED
+            NoteStatus.COMPLETED
         )
+
         await db.commit()
 
-        print(formatted_text)
-        print("\nAI FORMATTING COMPLETED")
-        
-        await event_bus.publish(
-            topic = AI_COMPLETED_TOPIC,
-            event = {
-                "note_id": note.id
-            }
+
+        print(
+            "\nPDF GENERATED SUCCESSFULLY"
         )
 
 
@@ -118,6 +117,6 @@ for message in consumer:
 
     except Exception as e:
 
-        print("AI CONSUMER ERROR")
+        print("PDF CONSUMER ERROR")
 
         print(str(e))

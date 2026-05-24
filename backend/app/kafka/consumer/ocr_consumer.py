@@ -77,7 +77,8 @@ async def process_message(data):
             )
         )
 
-
+        print("\nOCR RESULT:")
+        print(extracted_text)
         await NoteRepository.update_ocr_result(
 
             db=db,
@@ -100,6 +101,8 @@ async def process_message(data):
         )
 
 
+loop = asyncio.get_event_loop()
+
 for message in consumer:
 
     try:
@@ -110,12 +113,12 @@ for message in consumer:
 
         print(data)
 
-        asyncio.run(
+        loop.run_until_complete(
             process_message(data)
         )
 
     except Exception as e:
 
-        print("OCR ERROR")
+        print("AI CONSUMER ERROR")
 
         print(str(e))
