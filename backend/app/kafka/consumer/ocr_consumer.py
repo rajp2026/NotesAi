@@ -23,7 +23,9 @@ from app.repositories.note_repository import (
 )
 
 from app.models.enums import NoteStatus
-
+from app.websockets.connection_manager import (
+    manager
+)
 
 consumer = KafkaConsumer(
 
@@ -67,6 +69,12 @@ async def process_message(data):
         note.status = (
             NoteStatus.OCR_PROCESSING
         )
+        await manager.send_status(
+
+            note.id,
+
+            note.status.value
+        )
 
         await db.commit()
 
@@ -92,7 +100,12 @@ async def process_message(data):
 
 
         print("\nOCR COMPLETED")
+        await manager.send_status(
 
+            note.id,
+
+            NoteStatus.OCR_COMPLETED.value
+        )
         await event_bus.publish(
             topic = OCR_COMPLETED_TOPIC,
             event = {

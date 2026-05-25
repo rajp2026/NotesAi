@@ -6,6 +6,9 @@ class NoteResponse(BaseModel):
     id: int
     title: str | None
     original_file_url: str
+    generated_pdf_url: str | None
+    extracted_text: str | None
+    formatted_text: str | None
     status: NoteStatus
 
     class Config:

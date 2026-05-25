@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.enums import NoteStatus
 from app.models.note import Note
-
+from sqlalchemy import select
 
 class NoteRepository:
 
@@ -26,16 +26,19 @@ class NoteRepository:
 
         return note
 
-    # @staticmethod
-    # async def update_status(
-    #     db,
-    #     note,
-    #     status
-    # ):
-    #     note.status = status
-    #     await db.commit()
-    #     await db.refresh(note)
-    #     return note
+    @staticmethod
+    async def get_by_id(
+        db,
+        note_id: int,
+        
+    ):
+        result = await db.execute(
+            select(Note).where(
+                Note.id == note_id
+            )
+        )
+        return result.scalar_one_or_none()
+        
     @staticmethod
     async def update_ocr_result(
         db,

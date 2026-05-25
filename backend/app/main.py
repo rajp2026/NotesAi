@@ -1,5 +1,12 @@
 from fastapi import FastAPI
 from app.api.v1.routes.upload import router as upload_router
+from app.api.v1.routes.note import (
+    router as note_router
+)
+from app.api.v1.routes.websocket import (
+    router as websocket_router
+)
+
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
@@ -36,4 +43,13 @@ app.include_router(
     upload_router,
     prefix="/api/v1",
     tags=["Notes"]
+)
+app.include_router(
+
+    note_router,
+    prefix="/api/v1/notes",
+    tags=["Notes"]
+)
+app.include_router(
+    websocket_router
 )
