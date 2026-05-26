@@ -28,9 +28,7 @@ from app.kafka.topics import (
     AI_COMPLETED_TOPIC
 )
 
-from app.websockets.connection_manager import (
-    manager
-)
+from app.utils.ws_notify import notify_status
 
 consumer = KafkaConsumer(
 
@@ -70,14 +68,11 @@ async def process_message(data):
         note.status = (
             NoteStatus.AI_PROCESSING
         )
-        await manager.send_status(
-
+        await db.commit()
+        notify_status(
             note.id,
-
             note.status.value
         )
-
-        await db.commit()
 
         print("\nEXTRACTED TEXT:")
         print(note.extracted_text)
@@ -93,13 +88,11 @@ async def process_message(data):
         note.status = (
             NoteStatus.AI_COMPLETED
         )
-        await manager.send_status(
-
+        await db.commit()
+        notify_status(
             note.id,
-
             NoteStatus.AI_COMPLETED.value
         )
-        await db.commit()
 
         print(formatted_text)
         print("\nAI FORMATTING COMPLETED")

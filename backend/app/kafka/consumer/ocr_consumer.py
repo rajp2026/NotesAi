@@ -23,9 +23,7 @@ from app.repositories.note_repository import (
 )
 
 from app.models.enums import NoteStatus
-from app.websockets.connection_manager import (
-    manager
-)
+from app.utils.ws_notify import notify_status
 
 consumer = KafkaConsumer(
 
@@ -69,14 +67,11 @@ async def process_message(data):
         note.status = (
             NoteStatus.OCR_PROCESSING
         )
-        await manager.send_status(
-
+        await db.commit()
+        notify_status(
             note.id,
-
             note.status.value
         )
-
-        await db.commit()
 
 
         extracted_text = (
@@ -100,10 +95,8 @@ async def process_message(data):
 
 
         print("\nOCR COMPLETED")
-        await manager.send_status(
-
+        notify_status(
             note.id,
-
             NoteStatus.OCR_COMPLETED.value
         )
         await event_bus.publish(
@@ -132,6 +125,6 @@ for message in consumer:
 
     except Exception as e:
 
-        print("AI CONSUMER ERROR")
+        print("OCR CONSUMER ERROR")
 
         print(str(e))

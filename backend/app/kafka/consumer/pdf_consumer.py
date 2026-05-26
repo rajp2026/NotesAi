@@ -23,9 +23,8 @@ from app.kafka.event_bus import event_bus
 from app.kafka.topics import (
     AI_COMPLETED_TOPIC
 )
-from app.websockets.connection_manager import (
-    manager
-)
+
+from app.utils.ws_notify import notify_status
 
 
 consumer = KafkaConsumer(
@@ -72,15 +71,11 @@ async def process_message(data):
         note.status = (
             NoteStatus.PDF_GENERATING
         )
-
-        await manager.send_status(
-
+        await db.commit()
+        notify_status(
             note.id,
-
             note.status.value
         )
-
-        await db.commit()
 
 
         pdf_path = (
@@ -97,13 +92,11 @@ async def process_message(data):
         note.status = (
             NoteStatus.COMPLETED
         )
-        
-        await manager.send_status(
+        await db.commit()
+        notify_status(
             note.id,
             NoteStatus.COMPLETED.value
         )
-
-        await db.commit()
 
 
         print(
