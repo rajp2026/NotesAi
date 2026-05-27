@@ -1,6 +1,7 @@
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
+    container_name: zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
     ports:
@@ -8,6 +9,7 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka
     depends_on:
       - zookeeper
     ports:
@@ -18,6 +20,81 @@ services:
 
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
 
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
 
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  postgres:
+    image: postgres:16
+    container_name: postgres
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: notesdb
+
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ./backend
+
+    container_name: backend
+
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+    ports:
+      - "8000:8000"
+
+    env_file:
+      - .env
+
+    depends_on:
+      - kafka
+      - postgres
+
+  ocr_consumer:
+    build:
+      context: ./backend
+
+    container_name: ocr_consumer
+
+    command: python -m app.kafka.consumer.ocr_consumer
+
+    env_file:
+      - .env
+
+    depends_on:
+      - kafka
+      - postgres
+
+  ai_consumer:
+    build:
+      context: ./backend
+
+    container_name: ai_consumer
+
+    command: python -m app.kafka.consumer.ai_consumer
+
+    env_file:
+      - .env
+
+    depends_on:
+      - kafka
+      - postgres
+
+  pdf_consumer:
+    build:
+      context: ./backend
+
+    container_name: pdf_consumer
+
+    command: python -m app.kafka.consumer.pdf_consumer
+
+    env_file:
+      - .env
+
+    depends_on:
+      - kafka
+      - postgres
