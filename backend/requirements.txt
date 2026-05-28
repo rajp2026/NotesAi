@@ -10,3 +10,12 @@ alembic
 redis
 celery         
 gunicorn
+pydantic_settings
+Psycopg
+asyncpg
+kafka-python
+opencv-python-headless
+pytesseract
+requests
+openai
+reportlab

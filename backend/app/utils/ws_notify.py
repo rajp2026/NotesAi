@@ -13,8 +13,7 @@ the status through the real WebSocket connection.
 import requests
 
 
-NOTIFY_URL = "http://localhost:8000/internal/ws/notify"
-
+NOTIFY_URL = "http://backend:8000/internal/ws/notify"
 
 def notify_status(note_id: int, status: str):
     """

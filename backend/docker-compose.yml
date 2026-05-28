@@ -38,7 +38,7 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: .
 
     container_name: backend
 
@@ -56,26 +56,28 @@ services:
 
   ocr_consumer:
     build:
-      context: ./backend
+      context: .
 
     container_name: ocr_consumer
 
     command: python -m app.kafka.consumer.ocr_consumer
 
+    environment:
+      PYTHONUNBUFFERED: 1
+
     env_file:
       - .env
 
-    depends_on:
-      - kafka
-      - postgres
-
   ai_consumer:
     build:
-      context: ./backend
+      context: .
 
     container_name: ai_consumer
 
-    command: python -m app.kafka.consumer.ai_consumer
+    command: python -m app.kafka.consumer.ai_formatter_consumer
+
+    environment:
+      PYTHONUNBUFFERED: 1
 
     env_file:
       - .env
@@ -86,11 +88,14 @@ services:
 
   pdf_consumer:
     build:
-      context: ./backend
+      context: .
 
     container_name: pdf_consumer
 
     command: python -m app.kafka.consumer.pdf_consumer
+
+    environment:
+      PYTHONUNBUFFERED: 1
 
     env_file:
       - .env

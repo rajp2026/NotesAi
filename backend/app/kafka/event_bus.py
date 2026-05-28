@@ -1,6 +1,7 @@
 from app.kafka.producer.kafka_producer import (
-    producer
+    get_kafka_producer
 )
+producer = get_kafka_producer()
 
 
 class EventBus:

@@ -29,7 +29,7 @@ consumer = KafkaConsumer(
 
     IMAGE_UPLOADED_TOPIC,
 
-    bootstrap_servers="localhost:9092",
+    bootstrap_servers="kafka:9092",
 
     group_id="ocr-consumer-group",
 
@@ -41,8 +41,7 @@ consumer = KafkaConsumer(
 )
 
 
-print("OCR CONSUMER STARTED...")
-
+print("OCR CONSUMER STARTED...", flush=True)
 
 async def process_message(data):
 
@@ -117,8 +116,7 @@ for message in consumer:
 
         print("\nEVENT RECEIVED")
 
-        print(data)
-
+        print(data, flush=True)
         loop.run_until_complete(
             process_message(data)
         )
