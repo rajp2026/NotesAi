@@ -29,7 +29,7 @@ consumer = KafkaConsumer(
 
     IMAGE_UPLOADED_TOPIC,
 
-    bootstrap_servers="kafka:9092",
+    bootstrap_servers="localhost:29092",
 
     group_id="ocr-consumer-group",
 

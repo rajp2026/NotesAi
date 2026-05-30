@@ -28,7 +28,6 @@ async def upload_note(
     db: AsyncSession = Depends(get_db)
 ):
     try:
-
         note = await NoteService.upload_note(
             db=db,
             file=file

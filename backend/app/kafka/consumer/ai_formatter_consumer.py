@@ -34,7 +34,7 @@ consumer = KafkaConsumer(
 
     OCR_COMPLETED_TOPIC,
 
-    bootstrap_servers="kafka:9092",
+    bootstrap_servers="localhost:29092",
 
     group_id="ai-consumer-group-v2",
     auto_offset_reset="latest",

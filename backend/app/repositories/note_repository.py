@@ -20,24 +20,26 @@ class NoteRepository:
         db.add(note)
         print(type(note.status))
         print(note.status)
-        await db.commit()
-
+        try:
+            await db.commit()
+        except Exception as e:
+            print("COMMIT ERROR:", repr(e))
+            raise
         await db.refresh(note)
-
         return note
 
-    @staticmethod
-    async def get_by_id(
-        db,
-        note_id: int,
+    # @staticmethod
+    # async def get_by_id(
+    #     db,
+    #     note_id: int,
         
-    ):
-        result = await db.execute(
-            select(Note).where(
-                Note.id == note_id
-            )
-        )
-        return result.scalar_one_or_none()
+    # ):
+    #     result = await db.execute(
+    #         select(Note).where(
+    #             Note.id == note_id
+    #         )
+    #     )
+    #     return result.scalar_one_or_none()
         
     @staticmethod
     async def update_ocr_result(

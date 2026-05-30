@@ -23,7 +23,6 @@ class NoteService:
         # Save file locally
         file_path = LocalStorageService.save_file(file)
         # Save DB record
-
         note = await NoteRepository.create_note(
             db=db,
             title=file.filename,
@@ -31,7 +30,6 @@ class NoteService:
         )
 
         # Publish Kafka event
-
         await event_bus.publish(
 
             topic=IMAGE_UPLOADED_TOPIC,
