@@ -73,6 +73,7 @@ services:
 
     environment:
       PYTHONUNBUFFERED: 1
+      WS_NOTIFY_URL: http://backend:8000/internal/ws/notify
 
     env_file:
       - .env
@@ -87,6 +88,7 @@ services:
 
     environment:
       PYTHONUNBUFFERED: 1
+      WS_NOTIFY_URL: http://backend:8000/internal/ws/notify
 
     env_file:
       - .env
@@ -105,6 +107,7 @@ services:
 
     environment:
       PYTHONUNBUFFERED: 1
+      WS_NOTIFY_URL: http://backend:8000/internal/ws/notify
 
     env_file:
       - .env

@@ -10,10 +10,14 @@ to the FastAPI server's internal endpoint, which then pushes
 the status through the real WebSocket connection.
 """
 
+import os
 import requests
 
 
-NOTIFY_URL = "http://backend:8000/internal/ws/notify"
+NOTIFY_URL = os.getenv(
+    "WS_NOTIFY_URL",
+    "http://127.0.0.1:8000/internal/ws/notify"
+)
 
 def notify_status(note_id: int, status: str):
     """

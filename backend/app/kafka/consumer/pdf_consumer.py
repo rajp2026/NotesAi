@@ -31,7 +31,7 @@ consumer = KafkaConsumer(
 
     AI_COMPLETED_TOPIC,
 
-    bootstrap_servers="localhost:29092",
+    bootstrap_servers="kafka:9092",
 
     group_id="pdf-consumer-group",
 
