@@ -50,12 +50,25 @@ class PDFService:
 
         elements = []
 
+        import re
+        import html
+        
+        # Replace <br> or <br/> with newline
+        text = re.sub(r'<br\s*/?>', '\n', text)
+        
         paragraphs = text.split("\n")
 
 
         for para in paragraphs:
 
-            if para.strip():
+            para = para.strip()
+            if para:
+                # Escape raw HTML so ReportLab XML parser doesn't crash
+                para = html.escape(para)
+                
+                # Basic markdown to ReportLab tags
+                para = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', para)
+                para = re.sub(r'\*(.+?)\*', r'<i>\1</i>', para)
 
                 elements.append(
 

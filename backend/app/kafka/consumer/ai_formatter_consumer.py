@@ -1,4 +1,6 @@
 import json
+import os
+import time
 import asyncio
 
 from kafka import KafkaConsumer
@@ -30,22 +32,45 @@ from app.kafka.topics import (
 
 from app.utils.ws_notify import notify_status
 
-consumer = KafkaConsumer(
 
-    OCR_COMPLETED_TOPIC,
-
-    bootstrap_servers="kafka:9092",
-
-    group_id="ai-consumer-group-v2",
-    auto_offset_reset="latest",
-
-    value_deserializer=lambda m: json.loads(
-        m.decode("utf-8")
-    )
+BOOTSTRAP = os.getenv(
+    "KAFKA_BOOTSTRAP_SERVERS",
+    "kafka:9092"
 )
 
 
-print("AI FORMATTER CONSUMER STARTED...")
+def create_consumer():
+    """Create Kafka consumer with retry logic."""
+    retries = 15
+    for attempt in range(retries):
+        try:
+            c = KafkaConsumer(
+                OCR_COMPLETED_TOPIC,
+                bootstrap_servers=BOOTSTRAP,
+                group_id="ai-consumer-group-v2",
+                auto_offset_reset="latest",
+                value_deserializer=lambda m: json.loads(
+                    m.decode("utf-8")
+                )
+            )
+            print(
+                f"AI consumer connected to {BOOTSTRAP}",
+                flush=True
+            )
+            return c
+        except Exception as e:
+            print(
+                f"Kafka not ready for AI consumer. "
+                f"Retrying {attempt+1}/{retries}...",
+                flush=True
+            )
+            time.sleep(3)
+    raise Exception("AI consumer could not connect to Kafka")
+
+
+consumer = create_consumer()
+
+print("AI FORMATTER CONSUMER STARTED...", flush=True)
 
 
 async def process_message(data):
@@ -128,4 +153,4 @@ for message in consumer:
 
         print("AI CONSUMER ERROR")
 
-        print(str(e))
+        print(str(e), flush=True)

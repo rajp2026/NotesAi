@@ -1,33 +1,46 @@
 import json
-from kafka import KafkaProducer
+import os
 import time
+from kafka import KafkaProducer
 
-producer = None
+_producer = None
 
 
 def get_kafka_producer():
-    global producer
+    global _producer
 
-    if producer is None:
+    if _producer is not None:
+        return _producer
 
-        retries = 10
+    bootstrap = os.getenv(
+        "KAFKA_BOOTSTRAP_SERVERS",
+        "kafka:9092"
+    )
 
-        for attempt in range(retries):
-            try:
-                producer = KafkaProducer(
-                    bootstrap_servers="kafka:29092",
-                    value_serializer=lambda v: json.dumps(v).encode("utf-8")
-                )
+    retries = 15
 
-                print("Kafka connected successfully")
+    for attempt in range(retries):
+        try:
+            _producer = KafkaProducer(
+                bootstrap_servers=bootstrap,
+                value_serializer=lambda v: json.dumps(v).encode("utf-8")
+            )
 
-                break
+            print(
+                f"Kafka producer connected to {bootstrap}",
+                flush=True
+            )
 
-            except Exception as e:
-                print(f"Kafka not ready. Retrying... {attempt+1}/{retries}")
-                time.sleep(5)
+            return _producer
 
-        if producer is None:
-            raise Exception("Could not connect to Kafka")
+        except Exception as e:
+            print(
+                f"Kafka not ready. Retrying... "
+                f"{attempt+1}/{retries}",
+                flush=True
+            )
+            time.sleep(3)
 
-    return producer
+    raise Exception(
+        f"Could not connect to Kafka at {bootstrap}"
+    )

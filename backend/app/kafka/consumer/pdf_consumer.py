@@ -1,4 +1,6 @@
 import json
+import os
+import time
 import asyncio
 
 from kafka import KafkaConsumer
@@ -27,26 +29,47 @@ from app.kafka.topics import (
 from app.utils.ws_notify import notify_status
 
 
-consumer = KafkaConsumer(
-
-    AI_COMPLETED_TOPIC,
-
-    bootstrap_servers="kafka:9092",
-
-    group_id="pdf-consumer-group",
-
-    auto_offset_reset="latest",
-
-    enable_auto_commit=True,
-
-    value_deserializer=lambda m: json.loads(
-        m.decode("utf-8")
-    )
+BOOTSTRAP = os.getenv(
+    "KAFKA_BOOTSTRAP_SERVERS",
+    "kafka:9092"
 )
 
 
+def create_consumer():
+    """Create Kafka consumer with retry logic."""
+    retries = 15
+    for attempt in range(retries):
+        try:
+            c = KafkaConsumer(
+                AI_COMPLETED_TOPIC,
+                bootstrap_servers=BOOTSTRAP,
+                group_id="pdf-consumer-group",
+                auto_offset_reset="latest",
+                enable_auto_commit=True,
+                value_deserializer=lambda m: json.loads(
+                    m.decode("utf-8")
+                )
+            )
+            print(
+                f"PDF consumer connected to {BOOTSTRAP}",
+                flush=True
+            )
+            return c
+        except Exception as e:
+            print(
+                f"Kafka not ready for PDF consumer. "
+                f"Retrying {attempt+1}/{retries}...",
+                flush=True
+            )
+            time.sleep(3)
+    raise Exception("PDF consumer could not connect to Kafka")
+
+
+consumer = create_consumer()
+
 print(
-    "PDF GENERATOR CONSUMER STARTED..."
+    "PDF GENERATOR CONSUMER STARTED...",
+    flush=True
 )
 
 
@@ -127,4 +150,4 @@ for message in consumer:
 
         print("PDF CONSUMER ERROR")
 
-        print(str(e))
+        print(str(e), flush=True)

@@ -1,12 +1,20 @@
+import os
+import platform
+
 import cv2
 import pytesseract
 
 from PIL import Image
 
 
-pytesseract.pytesseract.tesseract_cmd = (
-    r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-)
+# On Windows, tesseract isn't on PATH by default
+if platform.system() == "Windows":
+    _win_path = (
+        r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    )
+    if os.path.exists(_win_path):
+        pytesseract.pytesseract.tesseract_cmd = _win_path
+# On Linux (Docker), tesseract is in PATH after apt install
 
 
 class OCRService:
@@ -20,6 +28,11 @@ class OCRService:
         print(f"OCR STARTED: {file_path}")
 
         image = cv2.imread(file_path)
+
+        if image is None:
+            raise ValueError(
+                f"Could not read image: {file_path}"
+            )
 
         # grayscale
         gray = cv2.cvtColor(
