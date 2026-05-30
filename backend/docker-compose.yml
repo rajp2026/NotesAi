@@ -2,6 +2,7 @@ services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
     container_name: zookeeper
+    restart: unless-stopped
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
     ports:
@@ -10,6 +11,7 @@ services:
   kafka:
     image: confluentinc/cp-kafka:7.4.0
     container_name: kafka
+    restart: unless-stopped
     depends_on:
       - zookeeper
     ports:
@@ -32,6 +34,7 @@ services:
   postgres:
     image: postgres:16
     container_name: postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1234
@@ -59,6 +62,7 @@ services:
     build:
       context: .
     container_name: backend
+    restart: unless-stopped
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     ports:
       - "8000:8000"
@@ -73,6 +77,11 @@ services:
         condition: service_healthy
       db-init:
         condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - shared_storage:/app/storage
 
@@ -80,6 +89,7 @@ services:
     build:
       context: .
     container_name: ocr_consumer
+    restart: unless-stopped
     command: python -m app.kafka.consumer.ocr_consumer
     environment:
       PYTHONUNBUFFERED: 1
@@ -93,7 +103,7 @@ services:
       postgres:
         condition: service_healthy
       backend:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - shared_storage:/app/storage
 
@@ -101,6 +111,7 @@ services:
     build:
       context: .
     container_name: ai_consumer
+    restart: unless-stopped
     command: python -m app.kafka.consumer.ai_formatter_consumer
     environment:
       PYTHONUNBUFFERED: 1
@@ -114,7 +125,7 @@ services:
       postgres:
         condition: service_healthy
       backend:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - shared_storage:/app/storage
 
@@ -122,6 +133,7 @@ services:
     build:
       context: .
     container_name: pdf_consumer
+    restart: unless-stopped
     command: python -m app.kafka.consumer.pdf_consumer
     environment:
       PYTHONUNBUFFERED: 1
@@ -135,7 +147,7 @@ services:
       postgres:
         condition: service_healthy
       backend:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - shared_storage:/app/storage
 

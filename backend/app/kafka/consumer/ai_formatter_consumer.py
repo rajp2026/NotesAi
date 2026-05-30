@@ -77,80 +77,76 @@ async def process_message(data):
 
     note_id = data.get("note_id")
 
-    async with AsyncSessionLocal() as db:
-
-        note = await NoteRepository.get_by_id(
-            db,
-            note_id
-        )
-        if not note:
-
-            print("Note not found")
-
-            return
-
-
-        note.status = (
-            NoteStatus.AI_PROCESSING
-        )
-        await db.commit()
-        notify_status(
-            note.id,
-            note.status.value
-        )
-
-        print("\nEXTRACTED TEXT:")
-        print(note.extracted_text)
-        formatted_text = (
-            await AIFormatterService.format_notes(
-                note.extracted_text
+    try:
+        async with AsyncSessionLocal() as db:
+            note = await NoteRepository.get_by_id(
+                db,
+                note_id
             )
-        )
+            if not note:
+                print("Note not found")
+                return
 
+            note.status = (
+                NoteStatus.AI_PROCESSING
+            )
+            await db.commit()
+            notify_status(
+                note.id,
+                note.status.value
+            )
 
-        note.formatted_text = formatted_text
+            print("\nEXTRACTED TEXT:")
+            print(note.extracted_text)
+            formatted_text = (
+                await AIFormatterService.format_notes(
+                    note.extracted_text
+                )
+            )
 
-        note.status = (
-            NoteStatus.AI_COMPLETED
-        )
-        await db.commit()
-        notify_status(
-            note.id,
-            NoteStatus.AI_COMPLETED.value
-        )
+            note.formatted_text = formatted_text
 
-        print(formatted_text)
-        print("\nAI FORMATTING COMPLETED")
-        
-        await event_bus.publish(
-            topic = AI_COMPLETED_TOPIC,
-            event = {
-                "note_id": note.id
-            }
-        )
+            note.status = (
+                NoteStatus.AI_COMPLETED
+            )
+            await db.commit()
+            notify_status(
+                note.id,
+                NoteStatus.AI_COMPLETED.value
+            )
+
+            print(formatted_text)
+            print("\nAI FORMATTING COMPLETED")
+            
+            await event_bus.publish(
+                topic = AI_COMPLETED_TOPIC,
+                event = {
+                    "note_id": note.id
+                }
+            )
+    except Exception as e:
+        print(f"AI PROCESSING ERROR: {e}", flush=True)
+        if note_id:
+            async with AsyncSessionLocal() as db:
+                note = await NoteRepository.get_by_id(db, note_id)
+                if note:
+                    note.status = NoteStatus.FAILED
+                    note.error_message = str(e)
+                    await db.commit()
+                    notify_status(note.id, NoteStatus.FAILED.value)
 
 
 loop = asyncio.new_event_loop()
-
 asyncio.set_event_loop(loop)
 
-
 for message in consumer:
-
     try:
-
         data = message.value
-
         print("\nEVENT RECEIVED")
-
         print(data)
-
         loop.run_until_complete(
             process_message(data)
         )
-
     except Exception as e:
-
         print("AI CONSUMER ERROR")
-
         print(str(e), flush=True)

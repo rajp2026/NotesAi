@@ -77,77 +77,71 @@ async def process_message(data):
 
     note_id = data.get("note_id")
 
-    async with AsyncSessionLocal() as db:
-
-        note = await NoteRepository.get_by_id(
-            db,
-            note_id
-        )
-
-        if not note:
-
-            print("Note not found")
-
-            return
-
-
-        note.status = (
-            NoteStatus.PDF_GENERATING
-        )
-        await db.commit()
-        notify_status(
-            note.id,
-            note.status.value
-        )
-
-
-        pdf_path = (
-            PDFService.generate_pdf(
-                note.formatted_text
+    try:
+        async with AsyncSessionLocal() as db:
+            note = await NoteRepository.get_by_id(
+                db,
+                note_id
             )
-        )
 
+            if not note:
+                print("Note not found")
+                return
 
-        note.generated_pdf_url = (
-            pdf_path
-        )
+            note.status = (
+                NoteStatus.PDF_GENERATING
+            )
+            await db.commit()
+            notify_status(
+                note.id,
+                note.status.value
+            )
 
-        note.status = (
-            NoteStatus.COMPLETED
-        )
-        await db.commit()
-        notify_status(
-            note.id,
-            NoteStatus.COMPLETED.value
-        )
+            pdf_path = (
+                PDFService.generate_pdf(
+                    note.formatted_text
+                )
+            )
 
+            note.generated_pdf_url = (
+                pdf_path
+            )
 
-        print(
-            "\nPDF GENERATED SUCCESSFULLY"
-        )
+            note.status = (
+                NoteStatus.COMPLETED
+            )
+            await db.commit()
+            notify_status(
+                note.id,
+                NoteStatus.COMPLETED.value
+            )
+
+            print(
+                "\nPDF GENERATED SUCCESSFULLY"
+            )
+    except Exception as e:
+        print(f"PDF PROCESSING ERROR: {e}", flush=True)
+        if note_id:
+            async with AsyncSessionLocal() as db:
+                note = await NoteRepository.get_by_id(db, note_id)
+                if note:
+                    note.status = NoteStatus.FAILED
+                    note.error_message = str(e)
+                    await db.commit()
+                    notify_status(note.id, NoteStatus.FAILED.value)
 
 
 loop = asyncio.new_event_loop()
-
 asyncio.set_event_loop(loop)
 
-
 for message in consumer:
-
     try:
-
         data = message.value
-
         print("\nEVENT RECEIVED")
-
         print(data)
-
         loop.run_until_complete(
             process_message(data)
         )
-
     except Exception as e:
-
         print("PDF CONSUMER ERROR")
-
         print(str(e), flush=True)

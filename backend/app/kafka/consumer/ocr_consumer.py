@@ -70,64 +70,64 @@ print("OCR CONSUMER STARTED...", flush=True)
 async def process_message(data):
 
     note_id = data.get("note_id")
-
     file_path = data.get("file_path")
 
-    async with AsyncSessionLocal() as db:
-
-        note = await NoteRepository.get_by_id(
-            db,
-            note_id
-        )
-
-        if not note:
-
-            print("Note not found")
-
-            return
-
-
-        note.status = (
-            NoteStatus.OCR_PROCESSING
-        )
-        await db.commit()
-        notify_status(
-            note.id,
-            note.status.value
-        )
-
-
-        extracted_text = (
-            OCRService.extract_text(
-                file_path
+    try:
+        async with AsyncSessionLocal() as db:
+            note = await NoteRepository.get_by_id(
+                db,
+                note_id
             )
-        )
 
-        print("\nOCR RESULT:")
-        print(extracted_text)
-        await NoteRepository.update_ocr_result(
+            if not note:
+                print("Note not found")
+                return
 
-            db=db,
+            note.status = (
+                NoteStatus.OCR_PROCESSING
+            )
+            await db.commit()
+            notify_status(
+                note.id,
+                note.status.value
+            )
 
-            note=note,
+            extracted_text = (
+                OCRService.extract_text(
+                    file_path
+                )
+            )
 
-            extracted_text=extracted_text,
+            print("\nOCR RESULT:")
+            print(extracted_text)
+            await NoteRepository.update_ocr_result(
+                db=db,
+                note=note,
+                extracted_text=extracted_text,
+                status=NoteStatus.OCR_COMPLETED
+            )
 
-            status=NoteStatus.OCR_COMPLETED
-        )
-
-
-        print("\nOCR COMPLETED")
-        notify_status(
-            note.id,
-            NoteStatus.OCR_COMPLETED.value
-        )
-        await event_bus.publish(
-            topic = OCR_COMPLETED_TOPIC,
-            event = {
-                "note_id": note.id
-            }
-        )
+            print("\nOCR COMPLETED")
+            notify_status(
+                note.id,
+                NoteStatus.OCR_COMPLETED.value
+            )
+            await event_bus.publish(
+                topic = OCR_COMPLETED_TOPIC,
+                event = {
+                    "note_id": note.id
+                }
+            )
+    except Exception as e:
+        print(f"OCR PROCESSING ERROR: {e}", flush=True)
+        if note_id:
+            async with AsyncSessionLocal() as db:
+                note = await NoteRepository.get_by_id(db, note_id)
+                if note:
+                    note.status = NoteStatus.FAILED
+                    note.error_message = str(e)
+                    await db.commit()
+                    notify_status(note.id, NoteStatus.FAILED.value)
 
 
 loop = asyncio.new_event_loop()
@@ -136,18 +136,12 @@ asyncio.set_event_loop(loop)
 for message in consumer:
 
     try:
-
         data = message.value
-
         print("\nEVENT RECEIVED")
-
         print(data, flush=True)
         loop.run_until_complete(
             process_message(data)
         )
-
     except Exception as e:
-
         print("OCR CONSUMER ERROR")
-
         print(str(e), flush=True)
