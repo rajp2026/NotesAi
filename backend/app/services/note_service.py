@@ -1,5 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+import uuid
 
+from app.services.storage.s3_service import (
+    s3_service
+)
 from app.repositories.note_repository import (
     NoteRepository
 )
@@ -22,11 +26,17 @@ class NoteService:
 
         # Save file locally
         file_path = LocalStorageService.save_file(file)
+        
+        s3_key = f"uploads/{uuid}_{file.filename}"
+        s3_service.upload_file(
+            local_file_path=file_path,
+            s3_key=s3_key
+        )
         # Save DB record
         note = await NoteRepository.create_note(
             db=db,
             title=file.filename,
-            original_file_url=file_path
+            original_file_url=s3_key
         )
 
         # Publish Kafka event

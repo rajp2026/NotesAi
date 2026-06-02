@@ -20,3 +20,4 @@ requests
 openai
 reportlab
 websockets
+boto3

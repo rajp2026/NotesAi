@@ -2,7 +2,11 @@ import json
 import os
 import time
 import asyncio
+import uuid
 
+from app.services.storage.s3_service import (
+    s3_service
+)
 from kafka import KafkaConsumer
 
 from app.db.session import (
@@ -103,9 +107,16 @@ async def process_message(data):
                 )
             )
 
-            note.generated_pdf_url = (
-                pdf_path
+            pdf_key = (
+                f"generated/{uuid.uuid4()}.pdf"
             )
+
+            s3_service.upload_file(
+                local_file_path=pdf_path,
+                s3_key=pdf_key
+            )
+
+            note.generated_pdf_url = pdf_key
 
             note.status = (
                 NoteStatus.COMPLETED
