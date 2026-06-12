@@ -11,9 +11,8 @@ from app.websockets.connection_manager import manager
 
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.common.logging_config import setup_logger
-
-logger = setup_logger("backend", "/app/logs/backend/backend.log")
+from common.logging_config import setup_logger
+logger = setup_logger("backend")
 
 app = FastAPI(
     title="AI Notes PDF Generator",

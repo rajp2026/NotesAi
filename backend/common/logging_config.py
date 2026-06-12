@@ -27,7 +27,7 @@ def setup_logger(service_name: str):
     console_handler.setFormatter(formatter)
 
     # File
-    file_handler = RotatingFileHandler(
+    file_handler = RotatingFileHandl
         f"/app/logs/{service_name}.log",
         maxBytes=10 * 1024 * 1024,
         backupCount=5,

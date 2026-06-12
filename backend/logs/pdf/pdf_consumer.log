@@ -1,0 +1,4 @@
+2026-06-12 13:14:02,509 | pdf_consumer | INFO | PDF consumer connected to kafka:9092
+2026-06-12 13:14:02,510 | pdf_consumer | INFO | PDF GENERATOR CONSUMER STARTED...
+2026-06-12 13:14:58,587 | pdf_consumer | INFO | EVENT RECEIVED | data={'note_id': 7}
+2026-06-12 13:14:59,020 | pdf_consumer | INFO | PDF GENERATED SUCCESSFULLY | note=7
