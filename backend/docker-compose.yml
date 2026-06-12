@@ -84,6 +84,7 @@ services:
       retries: 5
     volumes:
       - shared_storage:/app/storage
+      - ./logs/backend:/app/logs/backend
 
   ocr_consumer:
     build:
@@ -106,6 +107,7 @@ services:
         condition: service_healthy
     volumes:
       - shared_storage:/app/storage
+      - ./logs/ocr:/app/logs/ocr
 
   ai_consumer:
     build:
@@ -128,6 +130,7 @@ services:
         condition: service_healthy
     volumes:
       - shared_storage:/app/storage
+      - ./logs/ai:/app/logs/ai
 
   pdf_consumer:
     build:
@@ -150,6 +153,7 @@ services:
         condition: service_healthy
     volumes:
       - shared_storage:/app/storage
+      - ./logs/pdf:/app/logs/pdf
 
 volumes:
   shared_storage:

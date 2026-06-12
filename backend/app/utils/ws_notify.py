@@ -12,6 +12,9 @@ the status through the real WebSocket connection.
 
 import os
 import requests
+from app.common.logging_config import setup_logger
+
+logger = setup_logger("backend", "/app/logs/backend/backend.log")
 
 
 NOTIFY_URL = os.getenv(
@@ -36,4 +39,4 @@ def notify_status(note_id: int, status: str):
             timeout=2
         )
     except Exception as e:
-        print(f"[WS Notify] Failed: {e}")
+        logger.error(f"[WS Notify] Failed: {e} | note={note_id} status={status}")

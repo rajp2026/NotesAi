@@ -11,6 +11,10 @@ from app.websockets.connection_manager import manager
 
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.common.logging_config import setup_logger
+
+logger = setup_logger("backend", "/app/logs/backend/backend.log")
+
 app = FastAPI(
     title="AI Notes PDF Generator",
     version = "1.0.0" 
@@ -73,4 +77,4 @@ app.include_router(
 )
 app.include_router(
     websocket_router
-)
+)

@@ -1,6 +1,9 @@
 from app.kafka.producer.kafka_producer import (
     get_kafka_producer
 )
+from app.common.logging_config import setup_logger
+
+logger = setup_logger("backend", "/app/logs/backend/backend.log")
 
 
 class EventBus:
@@ -34,11 +37,7 @@ class EventBus:
 
         producer.flush()
 
-        print(
-            f"\nEVENT PUBLISHED -> {topic}"
-        )
-
-        print(event)
+        logger.info(f"EVENT PUBLISHED -> {topic} | event={event}")
 
 
 event_bus = EventBus()

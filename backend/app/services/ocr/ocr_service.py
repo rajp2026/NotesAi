@@ -5,6 +5,9 @@ import cv2
 import pytesseract
 
 from PIL import Image
+from app.common.logging_config import setup_logger
+
+logger = setup_logger("ocr_consumer", "/app/logs/ocr/ocr_consumer.log")
 
 
 # On Windows, tesseract isn't on PATH by default
@@ -25,7 +28,7 @@ class OCRService:
         file_path: str
     ) -> str:
 
-        print(f"OCR STARTED: {file_path}")
+        logger.info(f"OCR STARTED | file_path={file_path}")
 
         image = cv2.imread(file_path)
 

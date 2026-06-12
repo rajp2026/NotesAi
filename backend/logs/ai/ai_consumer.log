@@ -1,0 +1,5 @@
+2026-06-12 13:14:02,608 | ai_consumer | INFO | AI consumer connected to kafka:9092
+2026-06-12 13:14:02,609 | ai_consumer | INFO | AI FORMATTER CONSUMER STARTED...
+2026-06-12 13:14:56,339 | ai_consumer | INFO | EVENT RECEIVED | data={'note_id': 7}
+2026-06-12 13:14:56,384 | ai_consumer | INFO | EXTRACTED TEXT | note=7
+2026-06-12 13:14:58,472 | ai_consumer | INFO | AI FORMATTING COMPLETED | note=7

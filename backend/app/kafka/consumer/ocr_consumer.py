@@ -4,6 +4,9 @@ import time
 import asyncio
 
 from kafka import KafkaConsumer
+from app.common.logging_config import setup_logger
+
+logger = setup_logger("ocr_consumer", "/app/logs/ocr/ocr_consumer.log")
 
 from app.kafka.topics import (
     IMAGE_UPLOADED_TOPIC
@@ -48,24 +51,17 @@ def create_consumer():
                     m.decode("utf-8")
                 )
             )
-            print(
-                f"OCR consumer connected to {BOOTSTRAP}",
-                flush=True
-            )
+            logger.info(f"OCR consumer connected to {BOOTSTRAP}")
             return c
         except Exception as e:
-            print(
-                f"Kafka not ready for OCR consumer. "
-                f"Retrying {attempt+1}/{retries}...",
-                flush=True
-            )
+            logger.error(f"Kafka not ready for OCR consumer. Retrying {attempt+1}/{retries}...")
             time.sleep(3)
     raise Exception("OCR consumer could not connect to Kafka")
 
 
 consumer = create_consumer()
 
-print("OCR CONSUMER STARTED...", flush=True)
+logger.info("OCR CONSUMER STARTED...")
 
 async def process_message(data):
 
@@ -80,7 +76,7 @@ async def process_message(data):
             )
 
             if not note:
-                print("Note not found")
+                logger.error(f"Note not found | note={note_id}")
                 return
 
             note.status = (
@@ -98,8 +94,7 @@ async def process_message(data):
                 )
             )
 
-            print("\nOCR RESULT:")
-            print(extracted_text)
+            logger.info(f"OCR RESULT extracted | note={note_id}")
             await NoteRepository.update_ocr_result(
                 db=db,
                 note=note,
@@ -107,7 +102,7 @@ async def process_message(data):
                 status=NoteStatus.OCR_COMPLETED
             )
 
-            print("\nOCR COMPLETED")
+            logger.info(f"OCR COMPLETED | note={note_id}")
             notify_status(
                 note.id,
                 NoteStatus.OCR_COMPLETED.value
@@ -119,7 +114,7 @@ async def process_message(data):
                 }
             )
     except Exception as e:
-        print(f"OCR PROCESSING ERROR: {e}", flush=True)
+        logger.error(f"OCR PROCESSING ERROR: {e} | note={note_id}")
         if note_id:
             async with AsyncSessionLocal() as db:
                 note = await NoteRepository.get_by_id(db, note_id)
@@ -137,11 +132,9 @@ for message in consumer:
 
     try:
         data = message.value
-        print("\nEVENT RECEIVED")
-        print(data, flush=True)
+        logger.info(f"EVENT RECEIVED | data={data}")
         loop.run_until_complete(
             process_message(data)
         )
     except Exception as e:
-        print("OCR CONSUMER ERROR")
-        print(str(e), flush=True)
+        logger.error(f"OCR CONSUMER ERROR: {str(e)}")

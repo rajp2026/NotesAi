@@ -4,6 +4,11 @@ import time
 import asyncio
 import uuid
 
+from kafka import KafkaConsumer
+from app.common.logging_config import setup_logger
+
+logger = setup_logger("pdf_consumer", "/app/logs/pdf/pdf_consumer.log")
+
 from app.services.storage.s3_service import (
     s3_service
 )
@@ -54,27 +59,17 @@ def create_consumer():
                     m.decode("utf-8")
                 )
             )
-            print(
-                f"PDF consumer connected to {BOOTSTRAP}",
-                flush=True
-            )
+            logger.info(f"PDF consumer connected to {BOOTSTRAP}")
             return c
         except Exception as e:
-            print(
-                f"Kafka not ready for PDF consumer. "
-                f"Retrying {attempt+1}/{retries}...",
-                flush=True
-            )
+            logger.error(f"Kafka not ready for PDF consumer. Retrying {attempt+1}/{retries}...")
             time.sleep(3)
     raise Exception("PDF consumer could not connect to Kafka")
 
 
 consumer = create_consumer()
 
-print(
-    "PDF GENERATOR CONSUMER STARTED...",
-    flush=True
-)
+logger.info("PDF GENERATOR CONSUMER STARTED...")
 
 
 async def process_message(data):
@@ -89,7 +84,7 @@ async def process_message(data):
             )
 
             if not note:
-                print("Note not found")
+                logger.error(f"Note not found | note={note_id}")
                 return
 
             note.status = (
@@ -127,11 +122,9 @@ async def process_message(data):
                 NoteStatus.COMPLETED.value
             )
 
-            print(
-                "\nPDF GENERATED SUCCESSFULLY"
-            )
+            logger.info(f"PDF GENERATED SUCCESSFULLY | note={note_id}")
     except Exception as e:
-        print(f"PDF PROCESSING ERROR: {e}", flush=True)
+        logger.error(f"PDF PROCESSING ERROR: {e} | note={note_id}")
         if note_id:
             async with AsyncSessionLocal() as db:
                 note = await NoteRepository.get_by_id(db, note_id)
@@ -148,11 +141,9 @@ asyncio.set_event_loop(loop)
 for message in consumer:
     try:
         data = message.value
-        print("\nEVENT RECEIVED")
-        print(data)
+        logger.info(f"EVENT RECEIVED | data={data}")
         loop.run_until_complete(
             process_message(data)
         )
     except Exception as e:
-        print("PDF CONSUMER ERROR")
-        print(str(e), flush=True)
+        logger.error(f"PDF CONSUMER ERROR: {str(e)}")

@@ -1,4 +1,7 @@
 from fastapi import WebSocket
+from app.common.logging_config import setup_logger
+
+logger = setup_logger("backend", "/app/logs/backend/backend.log")
 
 
 class ConnectionManager:
@@ -43,7 +46,7 @@ class ConnectionManager:
 
         status: str
     ):
-        print("sending websockets status")
+        logger.info(f"sending websockets status | note={note_id} status={status}")
         websocket = (
             self.active_connections.get(
                 note_id

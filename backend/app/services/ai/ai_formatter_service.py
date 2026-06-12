@@ -1,6 +1,9 @@
 from openai import OpenAI
 # import os
 from app.core.config import settings
+from app.common.logging_config import setup_logger
+
+logger = setup_logger("ai_consumer", "/app/logs/ai/ai_consumer.log")
 
 
 client = OpenAI(
@@ -71,6 +74,6 @@ OCR TEXT:
 
         except Exception as e:
 
-            print("AI Formatting Error:", str(e))
+            logger.error(f"AI Formatting Error: {str(e)}")
 
             return extracted_text

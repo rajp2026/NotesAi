@@ -4,6 +4,9 @@ import time
 import asyncio
 
 from kafka import KafkaConsumer
+from app.common.logging_config import setup_logger
+
+logger = setup_logger("ai_consumer", "/app/logs/ai/ai_consumer.log")
 
 from app.db.session import (
     AsyncSessionLocal
@@ -53,24 +56,17 @@ def create_consumer():
                     m.decode("utf-8")
                 )
             )
-            print(
-                f"AI consumer connected to {BOOTSTRAP}",
-                flush=True
-            )
+            logger.info(f"AI consumer connected to {BOOTSTRAP}")
             return c
         except Exception as e:
-            print(
-                f"Kafka not ready for AI consumer. "
-                f"Retrying {attempt+1}/{retries}...",
-                flush=True
-            )
+            logger.error(f"Kafka not ready for AI consumer. Retrying {attempt+1}/{retries}...")
             time.sleep(3)
     raise Exception("AI consumer could not connect to Kafka")
 
 
 consumer = create_consumer()
 
-print("AI FORMATTER CONSUMER STARTED...", flush=True)
+logger.info("AI FORMATTER CONSUMER STARTED...")
 
 
 async def process_message(data):
@@ -84,7 +80,7 @@ async def process_message(data):
                 note_id
             )
             if not note:
-                print("Note not found")
+                logger.error(f"Note not found | note={note_id}")
                 return
 
             note.status = (
@@ -96,8 +92,7 @@ async def process_message(data):
                 note.status.value
             )
 
-            print("\nEXTRACTED TEXT:")
-            print(note.extracted_text)
+            logger.info(f"EXTRACTED TEXT | note={note_id}")
             formatted_text = (
                 await AIFormatterService.format_notes(
                     note.extracted_text
@@ -115,8 +110,7 @@ async def process_message(data):
                 NoteStatus.AI_COMPLETED.value
             )
 
-            print(formatted_text)
-            print("\nAI FORMATTING COMPLETED")
+            logger.info(f"AI FORMATTING COMPLETED | note={note_id}")
             
             await event_bus.publish(
                 topic = AI_COMPLETED_TOPIC,
@@ -125,7 +119,7 @@ async def process_message(data):
                 }
             )
     except Exception as e:
-        print(f"AI PROCESSING ERROR: {e}", flush=True)
+        logger.error(f"AI PROCESSING ERROR: {e} | note={note_id}")
         if note_id:
             async with AsyncSessionLocal() as db:
                 note = await NoteRepository.get_by_id(db, note_id)
@@ -142,11 +136,9 @@ asyncio.set_event_loop(loop)
 for message in consumer:
     try:
         data = message.value
-        print("\nEVENT RECEIVED")
-        print(data)
+        logger.info(f"EVENT RECEIVED | data={data}")
         loop.run_until_complete(
             process_message(data)
         )
     except Exception as e:
-        print("AI CONSUMER ERROR")
-        print(str(e), flush=True)
+        logger.error(f"AI CONSUMER ERROR: {str(e)}")

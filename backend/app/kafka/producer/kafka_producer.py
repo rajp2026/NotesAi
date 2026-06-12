@@ -2,6 +2,9 @@ import json
 import os
 import time
 from kafka import KafkaProducer
+from app.common.logging_config import setup_logger
+
+logger = setup_logger("backend", "/app/logs/backend/backend.log")
 
 _producer = None
 
@@ -26,19 +29,12 @@ def get_kafka_producer():
                 value_serializer=lambda v: json.dumps(v).encode("utf-8")
             )
 
-            print(
-                f"Kafka producer connected to {bootstrap}",
-                flush=True
-            )
+            logger.info(f"Kafka producer connected to {bootstrap}")
 
             return _producer
 
         except Exception as e:
-            print(
-                f"Kafka not ready. Retrying... "
-                f"{attempt+1}/{retries}",
-                flush=True
-            )
+            logger.error(f"Kafka not ready. Retrying... {attempt+1}/{retries}")
             time.sleep(3)
 
     raise Exception(

@@ -2,6 +2,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.enums import NoteStatus
 from app.models.note import Note
 from sqlalchemy import select
+from app.common.logging_config import setup_logger
+
+logger = setup_logger("backend", "/app/logs/backend/backend.log")
 
 class NoteRepository:
 
@@ -18,12 +21,11 @@ class NoteRepository:
         )
 
         db.add(note)
-        print(type(note.status))
-        print(note.status)
+        logger.info(f"Creating note | status_type={type(note.status)} status={note.status}")
         try:
             await db.commit()
         except Exception as e:
-            print("COMMIT ERROR:", repr(e))
+            logger.error(f"COMMIT ERROR: {repr(e)}")
             raise
         await db.refresh(note)
         return note
