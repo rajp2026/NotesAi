@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,6 +14,8 @@ from app.repositories.note_repository import (
 from app.schemas.note_schema import (
     NoteResponse
 )
+
+from app.services.storage.s3_service import s3_service
 
 
 router = APIRouter()
@@ -70,8 +72,7 @@ async def download_pdf(
             detail = "generated url not found"
         )
     
-    return FileResponse(
-        path = note.generated_pdf_url,
-        media_type = "application/pdf",
-        filename = f"{note.title}.pdf"
-    )
+    # Generate a pre-signed S3 URL for download
+    presigned_url = s3_service.generate_presigned_url(note.generated_pdf_url)
+    
+    return RedirectResponse(url=presigned_url)

@@ -27,7 +27,7 @@ class NoteService:
         # Save file locally
         file_path = LocalStorageService.save_file(file)
         
-        s3_key = f"uploads/{uuid}_{file.filename}"
+        s3_key = f"uploads/{uuid.uuid4()}_{file.filename}"
         s3_service.upload_file(
             local_file_path=file_path,
             s3_key=s3_key
