@@ -77,6 +77,29 @@ jobs:
       - name: Update IAM Roles with AWS Account ID
         run: sed -i 's/036230293894/${{ secrets.AWS_ACCOUNT_ID }}/g' ${{ env.ECS_TASK_DEFINITION }}
 
+      - name: Inject secrets into ECS task definition
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          AWS_S3_BUCKET: notes-ai-storage-036230293894-ap-south-1-an
+        run: |
+          python3 - <<'EOF'
+          import json, os
+          with open('infrastructure/ecs-task-def.json') as f:
+              task = json.load(f)
+          service_containers = ['backend', 'ocr_service', 'ai_formatter', 'pdf_formatter', 'db-init']
+          extra_env = [
+              {'name': 'OPENAI_API_KEY', 'value': os.environ['OPENAI_API_KEY']},
+              {'name': 'AWS_REGION',     'value': 'ap-south-1'},
+              {'name': 'AWS_S3_BUCKET',  'value': os.environ['AWS_S3_BUCKET']},
+          ]
+          for c in task['containerDefinitions']:
+              if c['name'] in service_containers:
+                  c.setdefault('environment', []).extend(extra_env)
+          with open('infrastructure/ecs-task-def.json', 'w') as f:
+              json.dump(task, f, indent=2)
+          print('Secrets injected successfully')
+          EOF
+
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
