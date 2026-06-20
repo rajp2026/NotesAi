@@ -94,7 +94,8 @@
       },
       "links": [
         "postgres",
-        "kafka"
+        "kafka",
+        "backend"
       ],
       "memory": 768,
       "memoryReservation": 512,
@@ -140,7 +141,8 @@
       },
       "links": [
         "postgres",
-        "kafka"
+        "kafka",
+        "backend"
       ],
       "memory": 768,
       "memoryReservation": 512,
@@ -186,7 +188,8 @@
       },
       "links": [
         "postgres",
-        "kafka"
+        "kafka",
+        "backend"
       ],
       "memory": 768,
       "memoryReservation": 512,
