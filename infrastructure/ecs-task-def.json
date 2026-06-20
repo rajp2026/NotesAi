@@ -45,7 +45,11 @@
           "awslogs-stream-prefix": "backend",
           "awslogs-create-group": "true"
         }
-      }
+      },
+      "links": [
+        "postgres",
+        "kafka"
+      ]
     },
     {
       "name": "ocr_service",
@@ -75,7 +79,11 @@
           "awslogs-stream-prefix": "ocr",
           "awslogs-create-group": "true"
         }
-      }
+      },
+      "links": [
+        "postgres",
+        "kafka"
+      ]
     },
     {
       "name": "ai_formatter",
@@ -105,7 +113,11 @@
           "awslogs-stream-prefix": "ai",
           "awslogs-create-group": "true"
         }
-      }
+      },
+      "links": [
+        "postgres",
+        "kafka"
+      ]
     },
     {
       "name": "pdf_formatter",
@@ -135,7 +147,11 @@
           "awslogs-stream-prefix": "pdf",
           "awslogs-create-group": "true"
         }
-      }
+      },
+      "links": [
+        "postgres",
+        "kafka"
+      ]
     },
     {
       "name": "frontend",
@@ -156,7 +172,10 @@
           "awslogs-stream-prefix": "frontend",
           "awslogs-create-group": "true"
         }
-      }
+      },
+      "links": [
+        "backend"
+      ]
     },
     {
       "name": "postgres",
@@ -280,7 +299,10 @@
           "awslogs-stream-prefix": "kafka",
           "awslogs-create-group": "true"
         }
-      }
+      },
+      "links": [
+        "zookeeper"
+      ]
     },
     {
       "name": "db-init",
@@ -305,7 +327,10 @@
           "awslogs-stream-prefix": "db-init",
           "awslogs-create-group": "true"
         }
-      }
+      },
+      "links": [
+        "postgres"
+      ]
     }
   ],
   "volumes": [
