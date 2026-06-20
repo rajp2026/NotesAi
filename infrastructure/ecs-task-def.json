@@ -325,6 +325,7 @@
     },
     {
       "name": "kafka",
+      "hostname": "kafka",
       "image": "confluentinc/cp-kafka:7.4.0",
       "essential": true,
       "environment": [
