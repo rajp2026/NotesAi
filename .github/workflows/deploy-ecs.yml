@@ -1,0 +1,91 @@
+name: Deploy to ECS
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com
+  ECS_CLUSTER: notesai-cluster
+  ECS_SERVICE: notesai-service
+  ECS_TASK_DEFINITION: infrastructure/ecs-task-def.json
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push Backend Image
+        env:
+          ECR_REPOSITORY: notesai-backend
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./backend
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY -a
+
+      - name: Build, tag, and push OCR Image
+        env:
+          ECR_REPOSITORY: notesai-ocr
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./ocr_service
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY -a
+
+      - name: Build, tag, and push AI Image
+        env:
+          ECR_REPOSITORY: notesai-ai
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./ai_formatter
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY -a
+
+      - name: Build, tag, and push PDF Image
+        env:
+          ECR_REPOSITORY: notesai-pdf
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./pdf_formatter
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY -a
+
+      - name: Build, tag, and push Frontend Image
+        env:
+          ECR_REPOSITORY: notesai-frontend
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          echo "VITE_API_BASE=http://${{ vars.EC2_PUBLIC_IP }}:8000" > ./frontend/.env
+          echo "VITE_WS_BASE=ws://${{ vars.EC2_PUBLIC_IP }}:8000" >> ./frontend/.env
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./frontend
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY -a
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.ECS_TASK_DEFINITION }}
+          container-name: backend
+          image: ${{ env.ECR_REGISTRY }}/notesai-backend:${{ github.sha }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true

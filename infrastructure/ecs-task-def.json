@@ -1,0 +1,151 @@
+{
+  "family": "notesai-task",
+  "requiresCompatibilities": ["EC2"],
+  "networkMode": "bridge",
+  "memory": "2048",
+  "cpu": "1024",
+  "executionRoleArn": "arn:aws:iam::036230293894:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::036230293894:role/ecsTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "backend",
+      "image": "036230293894.dkr.ecr.ap-south-1.amazonaws.com/notesai-backend:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "hostPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "DATABASE_URL",
+          "value": "postgresql+asyncpg://postgres:1234@postgres:5432/notesai"
+        },
+        { "name": "KAFKA_BOOTSTRAP_SERVERS", "value": "kafka:9092" }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "shared_storage",
+          "containerPath": "/app/storage",
+          "readOnly": false
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/notesai",
+          "awslogs-ap-south-1": "ap-south-1",
+          "awslogs-stream-prefix": "backend"
+        }
+      }
+    },
+    {
+      "name": "ocr_service",
+      "image": "036230293894.dkr.ecr.ap-south-1.amazonaws.com/notesai-ocr:latest",
+      "essential": true,
+      "environment": [
+        {
+          "name": "DATABASE_URL",
+          "value": "postgresql+asyncpg://postgres:1234@postgres:5432/notesai"
+        },
+        { "name": "KAFKA_BOOTSTRAP_SERVERS", "value": "kafka:9092" }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "shared_storage",
+          "containerPath": "/app/storage"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/notesai",
+          "awslogs-ap-south-1": "ap-south-1",
+          "awslogs-stream-prefix": "ocr"
+        }
+      }
+    },
+    {
+      "name": "ai_formatter",
+      "image": "036230293894.dkr.ecr.ap-south-1.amazonaws.com/notesai-ai:latest",
+      "essential": true,
+      "environment": [
+        {
+          "name": "DATABASE_URL",
+          "value": "postgresql+asyncpg://postgres:1234@postgres:5432/notesai"
+        },
+        { "name": "KAFKA_BOOTSTRAP_SERVERS", "value": "kafka:9092" }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "shared_storage",
+          "containerPath": "/app/storage"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/notesai",
+          "awslogs-ap-south-1": "ap-south-1",
+          "awslogs-stream-prefix": "ai"
+        }
+      }
+    },
+    {
+      "name": "pdf_formatter",
+      "image": "036230293894.dkr.ecr.ap-south-1.amazonaws.com/notesai-pdf:latest",
+      "essential": true,
+      "environment": [
+        {
+          "name": "DATABASE_URL",
+          "value": "postgresql+asyncpg://postgres:1234@postgres:5432/notesai"
+        },
+        { "name": "KAFKA_BOOTSTRAP_SERVERS", "value": "kafka:9092" }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "shared_storage",
+          "containerPath": "/app/storage"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/notesai",
+          "awslogs-ap-south-1": "ap-south-1",
+          "awslogs-stream-prefix": "pdf"
+        }
+      }
+    },
+    {
+      "name": "frontend",
+      "image": "036230293894.dkr.ecr.ap-south-1.amazonaws.com/notesai-frontend:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 80,
+          "hostPort": 80,
+          "protocol": "tcp"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/notesai",
+          "awslogs-ap-south-1": "ap-south-1",
+          "awslogs-stream-prefix": "frontend"
+        }
+      }
+    }
+  ],
+  "volumes": [
+    {
+      "name": "shared_storage",
+      "host": {
+        "sourcePath": "/mnt/ebs_data/storage"
+      }
+    }
+  ]
+}

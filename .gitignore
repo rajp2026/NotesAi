@@ -3,10 +3,19 @@ frontend/node_modules/
 frontend/dist/
 frontend/.env
 
-# Backend
+# Backend & Python Services
 backend/venv/
 backend/__pycache__/
 backend/.env
+ocr_service/venv/
+ocr_service/__pycache__/
+ocr_service/.env
+ai_formatter/venv/
+ai_formatter/__pycache__/
+ai_formatter/.env
+pdf_formatter/venv/
+pdf_formatter/__pycache__/
+pdf_formatter/.env
 *.pyc
 
 # IDE

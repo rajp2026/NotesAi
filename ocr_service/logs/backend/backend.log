@@ -1,0 +1,9 @@
+2026-06-12 13:14:55,656 | backend | INFO | Creating note | status_type=<enum 'NoteStatus'> status=NoteStatus.UPLOADED
+2026-06-12 13:14:55,716 | backend | INFO | Kafka producer connected to kafka:9092
+2026-06-12 13:14:55,833 | backend | INFO | EVENT PUBLISHED -> image_uploaded | event={'note_id': 7, 'file_path': 'storage/uploads/c782a5b7-5ef8-4394-8e91-20fd182d14e6_Screenshot 2026-05-31 154046.png', 'filename': 'Screenshot 2026-05-31 154046.png'}
+2026-06-12 13:14:55,882 | backend | INFO | sending websockets status | note=7 status=OCR_PROCESSING
+2026-06-12 13:14:56,222 | backend | INFO | sending websockets status | note=7 status=OCR_COMPLETED
+2026-06-12 13:14:56,382 | backend | INFO | sending websockets status | note=7 status=AI_PROCESSING
+2026-06-12 13:14:58,471 | backend | INFO | sending websockets status | note=7 status=AI_COMPLETED
+2026-06-12 13:14:58,633 | backend | INFO | sending websockets status | note=7 status=PDF_GENERATING
+2026-06-12 13:14:59,019 | backend | INFO | sending websockets status | note=7 status=COMPLETED

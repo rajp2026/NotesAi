@@ -1,0 +1,6 @@
+2026-06-12 13:14:02,510 | ocr_consumer | INFO | OCR consumer connected to kafka:9092
+2026-06-12 13:14:02,510 | ocr_consumer | INFO | OCR CONSUMER STARTED...
+2026-06-12 13:14:55,835 | ocr_consumer | INFO | EVENT RECEIVED | data={'note_id': 7, 'file_path': 'storage/uploads/c782a5b7-5ef8-4394-8e91-20fd182d14e6_Screenshot 2026-05-31 154046.png', 'filename': 'Screenshot 2026-05-31 154046.png'}
+2026-06-12 13:14:55,884 | ocr_consumer | INFO | OCR STARTED | file_path=storage/uploads/c782a5b7-5ef8-4394-8e91-20fd182d14e6_Screenshot 2026-05-31 154046.png
+2026-06-12 13:14:56,212 | ocr_consumer | INFO | OCR RESULT extracted | note=7
+2026-06-12 13:14:56,220 | ocr_consumer | INFO | OCR COMPLETED | note=7
