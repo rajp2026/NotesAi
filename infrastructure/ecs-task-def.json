@@ -359,10 +359,6 @@
         {
           "name": "KAFKA_HEAP_OPTS",
           "value": "-Xmx512m -Xms512m"
-        },
-        {
-          "name": "KAFKA_JVM_PERFORMANCE_OPTS",
-          "value": "-client -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+ExplicitGCInvokesConcurrent -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Djava.awt.headless=true"
         }
       ],
       "portMappings": [
