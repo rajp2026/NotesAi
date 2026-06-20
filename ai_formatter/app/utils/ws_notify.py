@@ -19,7 +19,7 @@ logger = setup_logger("backend", "/app/logs/backend/backend.log")
 
 NOTIFY_URL = os.getenv(
     "WS_NOTIFY_URL",
-    "http://127.0.0.1:8000/internal/ws/notify"
+    "http://backend:8000/internal/ws/notify"
 )
 
 def notify_status(note_id: int, status: str):
