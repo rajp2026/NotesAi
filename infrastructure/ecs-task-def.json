@@ -1,9 +1,11 @@
 {
   "family": "notesai-task",
-  "requiresCompatibilities": ["EC2"],
+  "requiresCompatibilities": [
+    "EC2"
+  ],
   "networkMode": "bridge",
-  "memory": "2048",
-  "cpu": "1024",
+  "memory": "4096",
+  "cpu": "2048",
   "executionRoleArn": "arn:aws:iam::036230293894:role/ecsTaskExecutionRole",
   "taskRoleArn": "arn:aws:iam::036230293894:role/ecsTaskRole",
   "containerDefinitions": [
@@ -23,7 +25,10 @@
           "name": "DATABASE_URL",
           "value": "postgresql+asyncpg://postgres:1234@postgres:5432/notesai"
         },
-        { "name": "KAFKA_BOOTSTRAP_SERVERS", "value": "kafka:9092" }
+        {
+          "name": "KAFKA_BOOTSTRAP_SERVERS",
+          "value": "kafka:9092"
+        }
       ],
       "mountPoints": [
         {
@@ -37,7 +42,8 @@
         "options": {
           "awslogs-group": "/ecs/notesai",
           "awslogs-region": "ap-south-1",
-          "awslogs-stream-prefix": "backend"
+          "awslogs-stream-prefix": "backend",
+          "awslogs-create-group": "true"
         }
       }
     },
@@ -50,7 +56,10 @@
           "name": "DATABASE_URL",
           "value": "postgresql+asyncpg://postgres:1234@postgres:5432/notesai"
         },
-        { "name": "KAFKA_BOOTSTRAP_SERVERS", "value": "kafka:9092" }
+        {
+          "name": "KAFKA_BOOTSTRAP_SERVERS",
+          "value": "kafka:9092"
+        }
       ],
       "mountPoints": [
         {
@@ -63,7 +72,8 @@
         "options": {
           "awslogs-group": "/ecs/notesai",
           "awslogs-region": "ap-south-1",
-          "awslogs-stream-prefix": "ocr"
+          "awslogs-stream-prefix": "ocr",
+          "awslogs-create-group": "true"
         }
       }
     },
@@ -76,7 +86,10 @@
           "name": "DATABASE_URL",
           "value": "postgresql+asyncpg://postgres:1234@postgres:5432/notesai"
         },
-        { "name": "KAFKA_BOOTSTRAP_SERVERS", "value": "kafka:9092" }
+        {
+          "name": "KAFKA_BOOTSTRAP_SERVERS",
+          "value": "kafka:9092"
+        }
       ],
       "mountPoints": [
         {
@@ -89,7 +102,8 @@
         "options": {
           "awslogs-group": "/ecs/notesai",
           "awslogs-region": "ap-south-1",
-          "awslogs-stream-prefix": "ai"
+          "awslogs-stream-prefix": "ai",
+          "awslogs-create-group": "true"
         }
       }
     },
@@ -102,7 +116,10 @@
           "name": "DATABASE_URL",
           "value": "postgresql+asyncpg://postgres:1234@postgres:5432/notesai"
         },
-        { "name": "KAFKA_BOOTSTRAP_SERVERS", "value": "kafka:9092" }
+        {
+          "name": "KAFKA_BOOTSTRAP_SERVERS",
+          "value": "kafka:9092"
+        }
       ],
       "mountPoints": [
         {
@@ -115,7 +132,8 @@
         "options": {
           "awslogs-group": "/ecs/notesai",
           "awslogs-region": "ap-south-1",
-          "awslogs-stream-prefix": "pdf"
+          "awslogs-stream-prefix": "pdf",
+          "awslogs-create-group": "true"
         }
       }
     },
@@ -135,7 +153,157 @@
         "options": {
           "awslogs-group": "/ecs/notesai",
           "awslogs-region": "ap-south-1",
-          "awslogs-stream-prefix": "frontend"
+          "awslogs-stream-prefix": "frontend",
+          "awslogs-create-group": "true"
+        }
+      }
+    },
+    {
+      "name": "postgres",
+      "image": "postgres:16",
+      "essential": true,
+      "environment": [
+        {
+          "name": "POSTGRES_USER",
+          "value": "postgres"
+        },
+        {
+          "name": "POSTGRES_PASSWORD",
+          "value": "1234"
+        },
+        {
+          "name": "POSTGRES_DB",
+          "value": "notesai"
+        }
+      ],
+      "portMappings": [
+        {
+          "containerPort": 5432,
+          "hostPort": 5432,
+          "protocol": "tcp"
+        }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "shared_storage",
+          "containerPath": "/var/lib/postgresql/data"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/notesai",
+          "awslogs-region": "ap-south-1",
+          "awslogs-stream-prefix": "postgres",
+          "awslogs-create-group": "true"
+        }
+      }
+    },
+    {
+      "name": "zookeeper",
+      "image": "confluentinc/cp-zookeeper:7.4.0",
+      "essential": true,
+      "environment": [
+        {
+          "name": "ZOOKEEPER_CLIENT_PORT",
+          "value": "2181"
+        }
+      ],
+      "portMappings": [
+        {
+          "containerPort": 2181,
+          "hostPort": 2181,
+          "protocol": "tcp"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/notesai",
+          "awslogs-region": "ap-south-1",
+          "awslogs-stream-prefix": "zookeeper",
+          "awslogs-create-group": "true"
+        }
+      }
+    },
+    {
+      "name": "kafka",
+      "image": "confluentinc/cp-kafka:7.4.0",
+      "essential": true,
+      "environment": [
+        {
+          "name": "KAFKA_BROKER_ID",
+          "value": "1"
+        },
+        {
+          "name": "KAFKA_ZOOKEEPER_CONNECT",
+          "value": "zookeeper:2181"
+        },
+        {
+          "name": "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP",
+          "value": "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT"
+        },
+        {
+          "name": "KAFKA_LISTENERS",
+          "value": "PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092"
+        },
+        {
+          "name": "KAFKA_ADVERTISED_LISTENERS",
+          "value": "PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092"
+        },
+        {
+          "name": "KAFKA_INTER_BROKER_LISTENER_NAME",
+          "value": "PLAINTEXT"
+        },
+        {
+          "name": "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR",
+          "value": "1"
+        }
+      ],
+      "portMappings": [
+        {
+          "containerPort": 9092,
+          "hostPort": 9092,
+          "protocol": "tcp"
+        },
+        {
+          "containerPort": 29092,
+          "hostPort": 29092,
+          "protocol": "tcp"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/notesai",
+          "awslogs-region": "ap-south-1",
+          "awslogs-stream-prefix": "kafka",
+          "awslogs-create-group": "true"
+        }
+      }
+    },
+    {
+      "name": "db-init",
+      "image": "036230293894.dkr.ecr.ap-south-1.amazonaws.com/notesai-backend:latest",
+      "essential": false,
+      "command": [
+        "alembic",
+        "upgrade",
+        "head"
+      ],
+      "environment": [
+        {
+          "name": "DATABASE_URL",
+          "value": "postgresql+asyncpg://postgres:1234@postgres:5432/notesai"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/notesai",
+          "awslogs-region": "ap-south-1",
+          "awslogs-stream-prefix": "db-init",
+          "awslogs-create-group": "true"
         }
       }
     }
