@@ -74,6 +74,9 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./frontend
           docker push $ECR_REGISTRY/$ECR_REPOSITORY -a
 
+      - name: Update IAM Roles with AWS Account ID
+        run: sed -i 's/036230293894/${{ secrets.AWS_ACCOUNT_ID }}/g' ${{ env.ECS_TASK_DEFINITION }}
+
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
