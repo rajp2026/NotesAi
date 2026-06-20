@@ -5,7 +5,7 @@
   ],
   "networkMode": "bridge",
   "memory": "6144",
-  "cpu": "2048",
+  "cpu": "1024",
   "executionRoleArn": "arn:aws:iam::036230293894:role/ecsTaskExecutionRole",
   "taskRoleArn": "arn:aws:iam::036230293894:role/ecsTaskRole",
   "containerDefinitions": [
