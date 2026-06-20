@@ -51,7 +51,17 @@
         "kafka"
       ],
       "memory": 768,
-      "memoryReservation": 512
+      "memoryReservation": 512,
+      "dependsOn": [
+        {
+          "containerName": "kafka",
+          "condition": "HEALTHY"
+        },
+        {
+          "containerName": "postgres",
+          "condition": "HEALTHY"
+        }
+      ]
     },
     {
       "name": "ocr_service",
@@ -87,7 +97,17 @@
         "kafka"
       ],
       "memory": 768,
-      "memoryReservation": 512
+      "memoryReservation": 512,
+      "dependsOn": [
+        {
+          "containerName": "kafka",
+          "condition": "HEALTHY"
+        },
+        {
+          "containerName": "postgres",
+          "condition": "HEALTHY"
+        }
+      ]
     },
     {
       "name": "ai_formatter",
@@ -123,7 +143,17 @@
         "kafka"
       ],
       "memory": 768,
-      "memoryReservation": 512
+      "memoryReservation": 512,
+      "dependsOn": [
+        {
+          "containerName": "kafka",
+          "condition": "HEALTHY"
+        },
+        {
+          "containerName": "postgres",
+          "condition": "HEALTHY"
+        }
+      ]
     },
     {
       "name": "pdf_formatter",
@@ -159,7 +189,17 @@
         "kafka"
       ],
       "memory": 768,
-      "memoryReservation": 512
+      "memoryReservation": 512,
+      "dependsOn": [
+        {
+          "containerName": "kafka",
+          "condition": "HEALTHY"
+        },
+        {
+          "containerName": "postgres",
+          "condition": "HEALTHY"
+        }
+      ]
     },
     {
       "name": "frontend",
@@ -228,7 +268,17 @@
         }
       },
       "memory": 512,
-      "memoryReservation": 256
+      "memoryReservation": 256,
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "pg_isready -U postgres || exit 1"
+        ],
+        "interval": 10,
+        "timeout": 5,
+        "retries": 5,
+        "startPeriod": 30
+      }
     },
     {
       "name": "zookeeper",
@@ -261,7 +311,17 @@
         }
       },
       "memory": 384,
-      "memoryReservation": 256
+      "memoryReservation": 256,
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "echo ruok | nc localhost 2181 || exit 1"
+        ],
+        "interval": 10,
+        "timeout": 5,
+        "retries": 5,
+        "startPeriod": 30
+      }
     },
     {
       "name": "kafka",
@@ -330,7 +390,23 @@
         "zookeeper"
       ],
       "memory": 768,
-      "memoryReservation": 512
+      "memoryReservation": 512,
+      "dependsOn": [
+        {
+          "containerName": "zookeeper",
+          "condition": "HEALTHY"
+        }
+      ],
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "nc -z localhost 9092 || exit 1"
+        ],
+        "interval": 10,
+        "timeout": 5,
+        "retries": 5,
+        "startPeriod": 60
+      }
     },
     {
       "name": "db-init",
@@ -360,7 +436,13 @@
         "postgres"
       ],
       "memory": 256,
-      "memoryReservation": 128
+      "memoryReservation": 128,
+      "dependsOn": [
+        {
+          "containerName": "postgres",
+          "condition": "HEALTHY"
+        }
+      ]
     }
   ],
   "volumes": [
